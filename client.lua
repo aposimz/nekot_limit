@@ -70,17 +70,23 @@ end
 -- デバッグ用コマンド: checkSpeedLimits
 RegisterCommand("checkSpeedLimits", function(source, args, rawCommand)
     local ped = PlayerPedId()
-    if not IsPedInAnyVehicle(ped, false) then
+    local vehicle = GetVehiclePedIsIn(ped, false)
+
+    if vehicle == 0 then
         print("You are not in a vehicle.")
         return
     end
 
-    local vehicle = GetVehiclePedIsIn(ped, false)
+    if GetPedInVehicleSeat(vehicle, -1) ~= ped then
+        print("You are not in the driver's seat.")
+        return
+    end
+
     local defaultSpeed = GetVehicleHandlingFloat(vehicle, "CHandlingData", "fInitialDriveMaxFlatVel") -- m/s
     local vehClass = GetVehicleClass(vehicle)
     local limit = nil
 
-    if vehClass == 16 or vehClass == 15 then
+    if vehClass == 15 or vehClass == 16 then
         print("This vehicle is not subject to speed limits.")
         return
     elseif vehClass == 18 then
@@ -92,6 +98,6 @@ RegisterCommand("checkSpeedLimits", function(source, args, rawCommand)
     local vehicleModel = GetEntityModel(vehicle)
     local vehicleName = GetDisplayNameFromVehicleModel(vehicleModel)
     print(string.format("Vehicle: %s", vehicleName))
-    print(string.format("default Max Speed (fInitialDriveMaxFlatVel): %.2f m/s (%.2f km/h)", defaultSpeed, defaultSpeed * 3.6))
-    print(string.format("Max Speed (limit): %.2f m/s (%.2f km/h)", limit, limit * 3.6))
+    print(string.format("Default Max Speed (fInitialDriveMaxFlatVel): %.2f m/s (%.2f km/h)", defaultSpeed, defaultSpeed * 3.6))
+    print(string.format("Applied Max Speed (limit): %.2f m/s (%.2f km/h)", limit, limit * 3.6))
 end, false)
