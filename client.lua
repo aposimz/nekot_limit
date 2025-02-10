@@ -20,6 +20,7 @@ if Config.vehiclespeedlimiter then
                 end
                 Citizen.Wait(500)  -- 乗車していない時用待機時間
             else
+                -- 乗車時の処理
                 if not inVehicle then
                     inVehicle = true
                     -- 乗車時に車両クラスとデフォルト最高速度をキャッシュ
@@ -38,7 +39,7 @@ if Config.vehiclespeedlimiter then
                         cachedLimit = Config.speedlimit
                     end
 
-                    print(string.format("Entered vehicle. Applying speed limit of %.0f km/h...", cachedLimit * 3.6))
+                    print("Entered vehicle. Applying speed limit.")
                 end
 
                 -- ヘリ15または飛行機16ならスキップ
@@ -95,9 +96,10 @@ RegisterCommand("checkSpeedLimits", function(source, args, rawCommand)
         limit = Config.speedlimit
     end
 
+    local appliedLimit = (defaultSpeed <= limit) and defaultSpeed or limit
     local vehicleModel = GetEntityModel(vehicle)
     local vehicleName = GetDisplayNameFromVehicleModel(vehicleModel)
     print(string.format("Vehicle: %s", vehicleName))
     print(string.format("Default Max Speed (fInitialDriveMaxFlatVel): %.2f m/s (%.2f km/h)", defaultSpeed, defaultSpeed * 3.6))
-    print(string.format("Applied Max Speed (limit): %.2f m/s (%.2f km/h)", limit, limit * 3.6))
+    print(string.format("Applied Max Speed (limit): %.2f m/s (%.2f km/h)", appliedLimit, appliedLimit * 3.6))
 end, false)
