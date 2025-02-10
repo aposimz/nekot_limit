@@ -10,7 +10,7 @@ if Config.vehiclespeedlimiter then
             local ped = PlayerPedId()
             local vehicle = GetVehiclePedIsIn(ped, false)
 
-            if vehicle == 0 then
+            if vehicle == 0 or GetPedInVehicleSeat(vehicle, -1) ~= ped then -- 運転席でない場合も追加
                 if inVehicle then
                     inVehicle = false
                     cachedVehClass = nil       -- キャッシュをリセット
@@ -41,7 +41,7 @@ if Config.vehiclespeedlimiter then
                     print(string.format("Entered vehicle. Applying speed limit of %.0f km/h...", cachedLimit * 3.6))
                 end
 
-                -- キャッシュされたクラスがヘリ15または飛行機16なら処理全体をスキップ
+                -- ヘリ15または飛行機16ならスキップ
                 if cachedVehClass == 15 or cachedVehClass == 16 then
                     Citizen.Wait(500)
                     goto continue
