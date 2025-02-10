@@ -72,7 +72,7 @@ RegisterCommand("checkSpeedLimits", function(source, args, rawCommand)
         print("This vehicle is not subject to speed limits.")
         return
     elseif vehClass == 18 then
-        limit = Config.emergencyclassSpeedlimit
+        limit = Config.emergencyspeedlimit
     else
         limit = Config.speedlimit
     end
