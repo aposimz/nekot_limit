@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Speed Limit</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="hidden">
+    <div class="panel">
+      <div class="title">最高速度の設定 (km/h)</div>
+      <div class="display">
+        <button id="dec10" class="btn">-10</button>
+        <button id="dec5" class="btn">-5</button>
+        <input id="value" type="number" step="1" min="5" />
+        <button id="inc5" class="btn">+5</button>
+        <button id="inc10" class="btn">+10</button>
+      </div>
+      <div class="hint">上限: <span id="maxLabel">--</span> km/h</div>
+      <div class="actions">
+        <button id="apply" class="btn primary">適用</button>
+        <button id="cancel" class="btn">閉じる</button>
+        <button id="clear" class="btn danger">リセット（上限に戻す）</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

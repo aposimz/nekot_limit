@@ -1,6 +1,37 @@
 Config = {}
 
 Config.vehiclespeedlimiter = true -- 速度制限するか
-Config.speedlimit = 55.56 -- m/s 例:250km/hにしたい場合の計算（250 / 3.6）= 69.4、記入は250 / 3.6のままでもOK"
-Config.emergencyspeedlimit = 600 / 3.6 -- 緊急車両(18)用
--- コンフィグには無いが、ヘリ(15)飛行機(16)は対象外
+
+-- m/s 指定（例: 200km/h = 200 / 3.6 = 55.56）
+-- ※必ず小数点付きで指定してください（例: 84.00）。もしくは「km/h / 3.6」の式でも可
+Config.speedlimit = 220 / 3.6 -- 一般車両の上限
+Config.emergencyspeedlimit = 270 / 3.6 -- 緊急車両(18)用の上限
+
+Config.vehicleweapons = false -- false で車両武器（ドライブバイ等）を無効化
+Config.debug = false -- デバッグログの出力を有効化
+
+-- ヘリ(15)・飛行機(16)は対象外
+--[[ 車両クラス一覧
+0: Compacts
+1: Sedans
+2: SUVs
+3: Coupes
+4: Muscle
+5: Sports Classics
+6: Sports
+7: Super
+8: Motorcycles
+9: Off-road
+10: Industrial
+11: Utility
+12: Vans
+13: Cycles
+14: Boats
+15: Helicopters (速度制限対象外)
+16: Planes (速度制限対象外)
+17: Service
+18: Emergency
+19: Military
+20: Commercial
+21: Trains
+]]
