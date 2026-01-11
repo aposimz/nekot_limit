@@ -1,6 +1,7 @@
 const app = document.getElementById('app');
 const input = document.getElementById('value');
 const maxLabel = document.getElementById('maxLabel');
+const prohibit = document.getElementById('prohibit');
 
 const onMessage = (e) => {
   const data = e.data || {};
@@ -12,6 +13,12 @@ const onMessage = (e) => {
     maxLabel.textContent = Math.round(data.maxKmh);
   } else if (data.action === 'close') {
     app.classList.add('hidden');
+  } else if (data.action === 'prohibit') {
+    if (data.show) {
+      prohibit.classList.remove('hidden');
+    } else {
+      prohibit.classList.add('hidden');
+    }
   }
 };
 window.addEventListener('message', onMessage);
