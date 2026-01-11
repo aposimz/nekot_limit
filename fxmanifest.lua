@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'nekot'
 description 'Vehicle Speed Limiter & Weapon Restriction Script for FiveM.'
-version '1.1.0'
+version '1.2.1'
 
 ui_page 'html/index.html'
 
