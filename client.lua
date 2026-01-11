@@ -3,6 +3,40 @@ local lastAppliedMax = nil            -- 直近に適用した上限（m/s）
 local lastApplyMs = 0                 -- 直近適用時刻（ms）
 local engaged = false                 -- 速度制限が今オンかどうか
 local manualEngaged = false           -- UIで制限を設定/解除した直後だけ true。自動解除を一時的に防ぐ
+local prohibitedActive = false        -- 犯罪利用禁止車両表示フラグ
+
+-- 指定ワードが車種名またはナンバープレートに含まれるか判定
+local function isProhibitedVehicle(vehicle)
+    if not vehicle or vehicle == 0 then return false end
+
+    local modelHash = GetEntityModel(vehicle)
+    local plate = (GetVehicleNumberPlateText(vehicle) or "")
+
+    -- モデル名（スポーン名）での判定（== ハッシュ一致）
+    if type(Config.prohibitModelNames) == 'table' and #Config.prohibitModelNames > 0 then
+        for _, name in ipairs(Config.prohibitModelNames) do
+            local n = tostring(name or "")
+            if #n > 0 then
+                if GetHashKey(n) == modelHash or GetHashKey(string.lower(n)) == modelHash or GetHashKey(string.upper(n)) == modelHash then
+                    return true
+                end
+            end
+        end
+    end
+
+    -- ナンバープレートの部分一致
+    if type(Config.prohibitPlateWords) == 'table' and #Config.prohibitPlateWords > 0 then
+        local plateLower = string.lower(plate)
+        for _, word in ipairs(Config.prohibitPlateWords) do
+            local needle = string.lower(tostring(word or ""))
+            if #needle > 0 and string.find(plateLower, needle, 1, true) then
+                return true
+            end
+        end
+    end
+
+    return false
+end
 
 -- 上限制御を解除する共通関数
 local function resetMaxSpeedSafe(vehicle)
@@ -58,6 +92,8 @@ if Config.vehiclespeedlimiter then
 					lastAppliedMax = nil
 					lastApplyMs = 0
                     engaged = false
+                    prohibitedActive = false
+                    SendNUIMessage({ action = 'prohibit', show = false })
                     if Config.debug then
                         print("[DEBUG] Exited vehicle. Caches reset.")
                     end
@@ -77,6 +113,17 @@ if Config.vehiclespeedlimiter then
                         -- 乗車直後は一度ネイティブ既定へ戻して残留キャップを解除
                         resetMaxSpeedSafe(vehicle)
                         cachedVehClass = GetVehicleClass(vehicle)
+
+                        -- 犯罪利用禁止車両チェック（車種名/ナンバー）
+                        prohibitedActive = isProhibitedVehicle(vehicle)
+                        if prohibitedActive then
+                            SendNUIMessage({ action = 'prohibit', show = true })
+                            if Config.debug then
+                                print("[DEBUG] Prohibited vehicle detected. Showing banner.")
+                            end
+                        else
+                            SendNUIMessage({ action = 'prohibit', show = false })
+                        end
 
                         -- 除外車両（ヘリ:15、飛行機:16）は対象外
                         if cachedVehClass == 15 or cachedVehClass == 16 then
@@ -158,7 +205,7 @@ if Config.vehiclespeedlimiter then
                         Citizen.Wait(500)
                     end
                 else
-                    Citizen.Wait(500)  -- 対象外
+                    Citizen.Wait(1200)  -- 対象外時
                 end
             end
         end
@@ -268,8 +315,8 @@ end
 
 -- end, false)
 
--- /speedlimit コマンド: UIを開く
-RegisterCommand("speedlimit", function()
+-- 速度制限UIを開く関数
+local function openSpeedLimitUI()
     local ped = PlayerPedId()
     local vehicle = GetVehiclePedIsIn(ped, false)
 
@@ -296,7 +343,18 @@ RegisterCommand("speedlimit", function()
 
     SendNUIMessage({ action = 'open', maxKmh = maxLimit * 3.6, currentKmh = currentKmh })
     SetNuiFocus(true, true)
+end
+
+-- /speedlimit コマンド: UIを開く
+RegisterCommand("speedlimit", function()
+    openSpeedLimitUI()
 end, false)
+
+-- ラジアルメニュー用のイベント
+RegisterNetEvent('nekot-limit2:openUI')
+AddEventHandler('nekot-limit2:openUI', function()
+    openSpeedLimitUI()
+end)
 
 -- NUI : 適用
 RegisterNUICallback('applySpeedLimit', function(data, cb)
