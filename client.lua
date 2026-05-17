@@ -5,7 +5,30 @@ local engaged = false                 -- 速度制限が今オンかどうか
 local manualEngaged = false           -- UIで制限を設定/解除した直後だけ true。自動解除を一時的に防ぐ
 local prohibitedActive = false        -- 犯罪利用禁止車両表示フラグ
 
--- 指定ワードが車種名またはナンバープレートに含まれるか判定
+-- リソース起動時のみ：速度制限を使う場合に、Config の上限(m/s)が不正ならフォールバックへ置換してログを出す
+local function validateConfiguredSpeedLimit(configKey, fallbackMps, label)
+    local value = Config[configKey]
+    -- nil・数値以外・0以下・NaN を不正とみなす
+    if type(value) ~= "number" or value <= 0 or value ~= value then
+        print(string.format(
+            "[ERROR] %s (%s) is invalid: %s. Using fallback %.2f m/s (%.0f km/h).",
+            configKey,
+            label,
+            tostring(value),
+            fallbackMps,
+            fallbackMps * 3.6
+        ))
+        Config[configKey] = fallbackMps
+    end
+end
+
+-- 設定値が不正だった場合のフォールバック（200 km/h = 200/3.6 m/s）
+if Config.vehiclespeedlimiter then
+    validateConfiguredSpeedLimit("speedlimit", 200 / 3.6, "general vehicles")
+    validateConfiguredSpeedLimit("emergencyspeedlimit", 200 / 3.6, "emergency vehicles")
+end
+
+-- 禁止車両判定：モデルはスポーン名を GetHashKey した値と車両モデルハッシュが一致するか、ナンバープレートは設定ワードの部分一致（大文字小文字無視）
 local function isProhibitedVehicle(vehicle)
     if not vehicle or vehicle == 0 then return false end
 
@@ -74,6 +97,7 @@ end
 if Config.vehiclespeedlimiter then
     Citizen.CreateThread(function()
         local inVehicle = false
+        local currentVehicle = nil             -- 現在キャッシュしている車両
         local cachedVehClass = nil             -- 車両クラスキャッシュ
         local cachedLimit = nil                -- 制限速度キャッシュ（m/s）
         local cachedDefaultMaxSpeed = nil      -- デフォルト最高速度キャッシュ（m/s）
@@ -86,6 +110,7 @@ if Config.vehiclespeedlimiter then
                 if inVehicle then
                     -- 降車時にキャッシュをリセット
                     inVehicle = false
+                    currentVehicle = nil
                     cachedVehClass = nil
                     cachedLimit = nil
                     cachedDefaultMaxSpeed = nil
@@ -101,7 +126,7 @@ if Config.vehiclespeedlimiter then
                 Citizen.Wait(1000)  -- 非乗車時
             else
                 -- 乗車中
-                if not inVehicle then
+                if (not inVehicle) or currentVehicle ~= vehicle then
                     inVehicle = true
 
                     if not DoesEntityExist(vehicle) then
@@ -110,6 +135,7 @@ if Config.vehiclespeedlimiter then
                         end
                         Citizen.Wait(100)
                     else
+                        currentVehicle = vehicle
                         -- 乗車直後は一度ネイティブ既定へ戻して残留キャップを解除
                         resetMaxSpeedSafe(vehicle)
                         cachedVehClass = GetVehicleClass(vehicle)

@@ -12,11 +12,11 @@ Config.debug = false -- デバッグログの出力を有効化
 
 -- 犯罪利用禁止 判定の設定
 -- 1) 車両モデル指定：モデル名（スポーン名）
-Config.prohibitModelNames = { "annihilator", "tug", "raidengrb" }
+Config.prohibitModelNames = { "tug", "raidengrb" }
 
 -- 2) ナンバープレートの部分一致ワード。例: { "GANG", "TEST" }
 --    大文字/小文字は無視（部分一致）
-Config.prohibitPlateWords = { "WCAT", "XXX" }
+Config.prohibitPlateWords = { "XXX" }
 
 -- ヘリ(15)・飛行機(16)は対象外
 --[[ 車両クラス一覧
